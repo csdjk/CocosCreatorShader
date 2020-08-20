@@ -1,0 +1,141 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.  
+/**
+ 扭曲 特效
+ author： lichanglong
+ create time：2020.8.11
+ **/
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+        noisetex: { value: white }
+        # 边缘宽度
+        lineWidth: {
+          value: 0.1,
+          editor: {
+            tooltip: "边缘宽度",
+            range: [0.0, 5.0],
+          }
+        }
+        lineColor: {
+          value: [1,1,1,1],
+          editor: {
+            type: color,
+            tooltip: "颜色",
+          }
+        }
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+  out vec4 v_time;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  #endif
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    v_uv0 = a_uv0;
+    #endif
+    v_color = a_color;
+    v_time = cc_time;
+
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+  
+  #include <alpha-test>
+  #include <texture>
+
+  in vec4 v_color;
+  in vec4 v_time;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  #endif
+
+  #if USE_NOISETEX
+  uniform sampler2D noisetex;
+  #endif
+
+  uniform Factor {
+      vec4 textureTexelSize;
+      vec4 lineColor;
+      float lineWidth;
+  };
+
+  void main () {
+    vec2 uv_temp = v_uv0;
+
+    vec4 noise = vec4(1, 1, 1, 1);
+    vec4 o = vec4(1, 1, 1, 1);
+    // 采样周围4个点
+    vec2 up_uv = v_uv0 + vec2(0,1) * lineWidth * textureTexelSize.xy;
+    vec2 down_uv = v_uv0 + vec2(0,-1) * lineWidth * textureTexelSize.xy;
+    vec2 left_uv = v_uv0 + vec2(-1,0) * lineWidth * textureTexelSize.xy;
+    vec2 right_uv = v_uv0 + vec2(1,0) * lineWidth * textureTexelSize.xy;
+
+    // 如果有一个点透明度为0 说明是边缘
+    vec4 up_uv_col = texture2D(texture,up_uv);
+    vec4 down_uv_col = texture2D(texture,down_uv);
+    vec4 left_uv_col = texture2D(texture,left_uv);
+    vec4 right_uv_col = texture2D(texture,right_uv);
+
+    float w = up_uv_col.a * down_uv_col.a * left_uv_col.a * right_uv_col.a;
+   
+    // 采样噪声纹理
+    #if USE_NOISETEX
+      CCTexture(noisetex, v_uv0.xy - v_time.x * 0.5 , noise);
+    #endif
+    
+    if(w == 0.0){
+      // 偏移uv
+      uv_temp += noise.xy * 0.05;
+    }
+
+    // uv_temp -= noise.xy * 0.05;
+    
+
+    #if USE_TEXTURE
+      CCTexture(texture, uv_temp, o);
+    #endif
+
+
+    o *= v_color;
+    ALPHA_TEST(o);
+
+    gl_FragColor = o;
+  }
+}%

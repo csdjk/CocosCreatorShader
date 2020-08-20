@@ -1,0 +1,34 @@
+{
+  "__type__": "cc.Material",
+  "_name": "OutShakingEffect",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "33f8e21f-54e9-40ac-ab7c-9cd792ea76f6"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "alphaThreshold": 0.2,
+        "lineColor": {
+          "__type__": "cc.Color",
+          "r": 103,
+          "g": 244,
+          "b": 0,
+          "a": 255
+        },
+        "lineWidth": 0.2,
+        "noisetex": {
+          "__uuid__": "1e315837-63de-4549-a1dd-c3dfa54df670"
+        }
+      },
+      "defines": {
+        "USE_TEXTURE": true,
+        "USE_ALPHA_TEST": true,
+        "USE_NOISETEX": true,
+        "INPUT_IS_GAMMA": false
+      }
+    }
+  }
+}

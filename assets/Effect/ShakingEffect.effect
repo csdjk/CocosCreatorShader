@@ -1,0 +1,144 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.  
+/**
+ 扭曲 特效
+ author： lichanglong
+ create time：2020.8.11
+ **/
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+        # 噪声纹理
+        noisetex: { value: white }
+        speedFactor: {
+          value: 0.1,
+          editor: {
+            tooltip: "速度",
+            range: [0.0, 1.0],
+          }
+        }
+        strengthFactor: {
+          value: 0.1,
+          editor: {
+            tooltip: "强度",
+            range: [-0.5, 0.5],
+          }
+        }
+        isHorizontal: {
+            value: 0,
+            editor: {
+              tooltip: "横向扭曲",
+              range: [0.0, 1.0],
+            }
+        }
+        isVertical: {
+            value: 0,
+            editor: {
+              tooltip: "纵向扭曲",
+              range: [0.0, 1.0],
+            }
+        }
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  #endif
+
+  out vec4 v_time;
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    v_uv0 = a_uv0;
+    #endif
+    v_color = a_color;
+
+    v_time = cc_time;
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+  
+  #include <alpha-test>
+  #include <texture>
+
+  in vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  #endif
+
+  #if USE_NOISETEX
+  uniform sampler2D noisetex;
+  #endif
+
+  uniform Factor {
+      float speedFactor;
+      float strengthFactor;
+      float isHorizontal;
+      float isVertical;
+  };
+
+  in vec4 v_time;
+
+  void main () {
+    vec4 o = vec4(1);
+    vec4 noise = vec4(1);
+
+    vec2 uv_temp = v_uv0;
+
+    // 采样噪声纹理
+    #if USE_NOISETEX
+      CCTexture(noisetex, v_uv0.xy + v_time.x * speedFactor , noise);
+    #endif
+      // 偏移uv
+      // uv_temp += noise.xy * strengthFactor;
+      float isH = step(0.1, isHorizontal);
+      float isV = step(0.1, isVertical);
+
+      uv_temp.x += noise.x * strengthFactor * isH;
+      uv_temp.y += noise.x * strengthFactor * isV;
+
+    #if USE_TEXTURE
+      CCTexture(texture, uv_temp, o);
+    #endif
+
+    o *= v_color;
+
+    ALPHA_TEST(o);
+
+    gl_FragColor = o;
+  }
+}%

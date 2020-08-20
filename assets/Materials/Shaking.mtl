@@ -1,0 +1,29 @@
+{
+  "__type__": "cc.Material",
+  "_name": "Shaking",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "02b44a69-b23e-43d3-b16c-d1a301ce3fd2"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "strengthFactor": 0.10000000000000014,
+        "speedFactor": 0.3,
+        "isHorizontal": 1,
+        "isVertical": 1,
+        "noisetex": {
+          "__uuid__": "1e315837-63de-4549-a1dd-c3dfa54df670"
+        }
+      },
+      "defines": {
+        "USE_TEXTURE": true,
+        "USE_ALPHA_TEST": false,
+        "USE_NOISETEX": true,
+        "INPUT_IS_GAMMA": false
+      }
+    }
+  }
+}

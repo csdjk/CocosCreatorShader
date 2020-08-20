@@ -1,0 +1,8 @@
+{
+  "engine": "cocos2d-html5",
+  "packages": "packages",
+  "version": "2.4.2",
+  "name": "MyShader",
+  "id": "160b791d-c098-4bc2-a449-a020f60afe26",
+  "isNew": false
+}
