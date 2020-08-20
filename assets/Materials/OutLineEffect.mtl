@@ -1,6 +1,6 @@
 {
   "__type__": "cc.Material",
-  "_name": "OutShakingEffect",
+  "_name": "OutLineEffect",
   "_objFlags": 0,
   "_native": "",
   "_effectAsset": {
@@ -20,7 +20,7 @@
           "b": 0,
           "a": 255
         },
-        "lineWidth": 0.2,
+        "lineWidth": 1,
         "noisetex": {
           "__uuid__": "1e315837-63de-4549-a1dd-c3dfa54df670"
         }
